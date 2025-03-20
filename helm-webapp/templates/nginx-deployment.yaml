@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      serviceAccountName: nginx-sa
+      containers:
+        - name: nginx
+          image: travelwithvishs/62209-nginx-image:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-storage
+              mountPath: /usr/share/nginx/html
+          env:
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nginx-secret
+                  key: APP_KEY
+            - name: WELCOME_MSG
+              valueFrom:
+                configMapKeyRef:
+                  name: nginx-config
+                  key: WELCOME_MSG
+      volumes:
+        - name: nginx-storage
+          persistentVolumeClaim:
+            claimName: nginx-pvc
